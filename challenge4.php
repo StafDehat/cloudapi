@@ -7,5 +7,11 @@ require_once('./auth.php');
 //$compute = $RAX->Compute();
 
 
+// Validate domain
+// Validate IP address
+// Determine parent domain from input
+
+
+
 
 ?>
