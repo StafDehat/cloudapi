@@ -23,4 +23,10 @@ $RAX->SetDefaults('ObjectStore',
     $ini['ObjectStore']['urltype']
 );
 
+$RAX->SetDefaults('DbService',
+    $ini['DbService']['serviceName'],
+    $ini['DbService']['region'],
+    $ini['DbService']['urltype']
+);
+
 ?>

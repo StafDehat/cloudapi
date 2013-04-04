@@ -1,4 +1,5 @@
 <?php
+// Challenge 2: Write a script that clones a server (takes an image and deploys the image as a new server). Worth 2 Points
 
 require_once('opencloud/lib/rackspace.php');
 require_once('./auth.php');

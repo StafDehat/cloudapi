@@ -1,4 +1,5 @@
 <?php
+// Challenge 6: Write a script that creates a CDN-enabled container in Cloud Files. Worth 1 Point
 
 require_once('opencloud/lib/rackspace.php');
 require_once('./auth.php');
@@ -29,7 +30,6 @@ if (! ctype_alnum($containerName)) {
 $exists = false;
 $containerlist = $ostore->ContainerList();
 while($container = $containerlist->Next()) {
-  printf("Container %s has %u bytes\n", $container->name, $container->bytes);
   if ($container->name == $containerName) {
     echo "Error: Container \"$containerName\" already exists.\n";
     usage($argv[0]);
