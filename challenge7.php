@@ -11,7 +11,7 @@ $compute = $RAX->Compute();
 
 
 // Initialize some LB stuff
-$lbs = $RAX->LoadBalancerService('cloudLoadBalancers', 'DFW', 'publicURL');
+$lbs = $RAX->LoadBalancerService();
 $pool = $lbs->LoadBalancer();
 $nodes = array();
 

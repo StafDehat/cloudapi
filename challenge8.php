@@ -42,6 +42,7 @@ while($container = $containerlist->Next()) {
   }
 }
 // Container doesn't exist - create it
+echo "Creating container \"$containerName\"\n";
 $container = $ostore->Container();
 $container->name = $containerName;
 $container->Create();
@@ -49,6 +50,7 @@ $container->EnableCDN();
 
 
 // Make an index file in /tmp
+echo "Creating /tmp/index.html\n";
 $filename = "index.html";
 $filehandle = fopen("/tmp/$filename", 'w') or die ("Unable to write file\n");
 $filecontents = "<html>
@@ -63,11 +65,14 @@ fwrite($filehandle, $filecontents);
 fclose($filehandle);
 
 // Upload index file to new Cloud Files container
+echo "Uploading new index file to Cloud Files\n";
 $file = $container->DataObject();
 $file->Create(array('name'=>$filename), "/tmp/$filename");
 
 // Declare this new index file as the DirectoryIndex for the container
+echo "Setting metadata to make index file a static site.\n";
 $container->metadata = array('X-Container-Meta-Web-Index'=>$filename);
+$container->CreateStaticSite("index.html");
 
 
 // Add a CNAME record
