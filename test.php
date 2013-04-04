@@ -3,13 +3,28 @@
 require_once('opencloud/lib/rackspace.php');
 require_once('./auth.php');
 
-// Some hard-coded crap
-$cent63id = 'c195ef3b-9195-4474-b6f7-16e5bd86acd0';
-
 $compute = $RAX->Compute();
+$dns = $RAX->DNS();
 
-$serverlist = $compute->ServerList();
-while($server = $serverlist->Next())
-    print($server->name."\n");
+$imagelist = $compute->ImageList();
+$imagelist->Sort('name');   // sort by name
+while($image = $imagelist->Next())
+    printf("Image: %s\n", $image->name);
+
+
+$flavorlist = $compute->FlavorList();
+$flavorlist->Sort();    // The default sort key is 'id'
+while($flavor = $flavorlist->Next()) {
+    printf("Flavor: %s RAM=%d\n", $flavor->name, $flavor->ram);
+  echo "Flavor ID: $flavor->id\n";
+}
+
+echo "\n";
+
+if ($flavor = $compute->Flavor(9)) {
+  echo "Flavor $flavor->name has ID $flavor->id and $flavor->ram MB RAM\n";
+} else {
+  echo "Flavor ID not found \n";
+}
 
 ?>

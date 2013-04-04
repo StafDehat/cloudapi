@@ -30,7 +30,7 @@ if (count($argv) != 4) {
   usage($argv[0]);
 }
 $fqdn = $argv[1];
-$imgName = $argv[2];
+$imgID = $argv[2];
 $flavorID = $argv[3];
 // Validate domain
 if ( ! is_valid_domain_name($fqdn) ) {
@@ -38,28 +38,98 @@ if ( ! is_valid_domain_name($fqdn) ) {
   echo "  Valid domain characters are letters, numbers, hypens, and/or underscores.\n";
   usage($argv[0]);
 }
-// Validate image name
-if ( ! is_alnum($imgName) ) {
-  echo "Error: Image name must be alpha-numeric.\n";
+// Validate image ID
+if ( ! preg_match("/^\s*[-a-z0-9]+\s*$/", $imgID) ) {
+  echo "Error: Image ID must be only letters, numbers, and hypens (-).\n";
   usage($argv[0]);
 }
 // Validate flavour ID
-if ( ! is_num($flavorID) ) {
+if ( ! is_numeric($flavorID) ) {
   echo "Error: Flavor ID must be numeric.\n";
   usage($argv[0]);
 }
 
 
-// Verify $imgName is actually a valid image
-
-
 // Verify flavorID is a valid flavour ID
+$exists = false;
+$flavorlist = $compute->FlavorList();
+while($flavor = $flavorlist->Next()) {
+  if ($flavorID == $flavor->id) {
+    echo "Found flavor with ID $flavorID.  New server will have $flavor->ram MB RAM.\n";
+    $exists = true;
+    break;
+  }
+}
+if (! $exists) {
+  echo "Error: Specified flavor ID ($flavorID) does not exist.\n";
+  $flavorlist = $compute->FlavorList();
+  $flavorlist->Sort();
+  echo "Valid flavors are the following:\n";
+  while($flavor = $flavorlist->Next()) {
+    echo "  ID $flavor->id: $flavor->ram MB RAM\n";
+  }
+  exit;
+}
 
 
+// Pull list of images, verify $imgID is valid
+$exists = false;
+$images = $compute->ImageList();
+while ($image = $images->Next()) {
+  if ($image->id == $imgID) {
+    echo "Found image ID \"$imgID\" with name \"$image->name\".\n";
+    $exists = true;
+    break;
+  }
+}
+if (! $exists) {
+  echo "Error: Unable to find an image with ID \"$imgID\"\n";
+  echo "Valid image IDs are as follows:\n";
+  $imagelist = $compute->ImageList();
+  $imagelist->Sort('name');
+  while($image = $imagelist->Next()) {
+    echo " $image->name : $image->id\n";
+  }
+  exit;
+}
 
 
+// Verify no server already exists with desired name
+$exists = false;
+$servers = $compute->ServerList();
+while ($server = $servers->Next()) {
+  if ($server->name == $fqdn) {
+    echo "Error: Server with name \"$fqdn\" already exists.\n";
+    exit;
+  }
+}
 
 
+// Create the server
+$server = $compute->Server();
+$server->name = $fqdn;
+$server->flavor = $compute->Flavor($flavorID);
+$server->image = $compute->Image($imgID);
+$server->Create();
+
+echo "Creating server " . $server->name . " with ID ". $server->id ."\n";
+
+$id = $server->id;
+$rootpass = $server->adminPass;
+
+do {
+  echo "Server not yet active.  Sleeping 30s...\n";
+  sleep(30);
+  $server = $compute->Server($id);
+} while ( ! ($server->status == 'ACTIVE') );
+
+echo "\n";
+echo $server->name . " details:\n";
+echo "Server ID: ". $id ."\n";
+echo "IP:        " . $server->ip(4) . "\n";
+echo "Username:  root\n";
+echo "Password:  " . $rootpass . "\n";
+echo "\n";
 
 
 // Create DNS entry for FQDN
@@ -101,12 +171,11 @@ if ( ! $exists ) {
 // Add our new record to the domain's zone file
 $record = $zone->Record();
 $record->name = $fqdn;
-$record->type = "CNAME";
-$record->data = $filesfqdn;
+$record->type = "A";
+$record->data = $server->ip(4); // TODO Get the IP from the cloud server
 $record->Create();
 $zone->Update();
 echo "Added A record for \"$fqdn\" to zone file for \"$parentDomain.$tld\"\n";
-
 
 
 ?>

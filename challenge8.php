@@ -94,7 +94,7 @@ if ( ! $exists ) {
   $zone->name = "$parentDomain.$tld";
   $zone->emailAddress = "admin@$parentDomain.$tld";
   $zone->Create();
-  sleep(5);
+  sleep(5); // TODO Actually verify the domain created successfully
   echo "Parent domain created.\n";
   $zone = $dns->DomainList(array("name" => "$parentDomain.$tld"))->Next();
 }
