@@ -1,3 +1,4 @@
+#!/usr/bin/php
 <?php
 //Challenge 7: Write a script that will create 2 Cloud Servers and add them as nodes to a new Cloud Load Balancer. Worth 3 Points
 
@@ -8,10 +9,10 @@ require_once('./auth.php');
 $cent63id = 'c195ef3b-9195-4474-b6f7-16e5bd86acd0';
 
 $compute = $RAX->Compute();
+$lbs = $RAX->LoadBalancerService("cloudLoadBalancers", "DFW", "publicURL");
 
 
 // Initialize some LB stuff
-$lbs = $RAX->LoadBalancerService();
 $pool = $lbs->LoadBalancer();
 $nodes = array();
 
@@ -20,7 +21,7 @@ $nodes = array();
 $servers = array();
 for ($x=0; $x<2; $x++) {
   $server = $compute->Server();
-  $server->name = 'AHoward-LBTest' . $x;
+  $server->name = 'AHoward-Challenge7-' . $x;
   $server->flavor = $compute->Flavor(2); //512MB
   $server->image = $compute->Image($cent63id);
   $server->Create();
@@ -61,7 +62,8 @@ for ($x=0; $x<count($servers); $x++) {
 
 
 // Define the load balancer and create it
-$pool->name = "AHoward-LBTest";
+echo "Creating load balancer\n";
+$pool->name = "AHoward-Challenge7";
 $pool->port = "80";
 $pool->protocol = "HTTP";
 $pool->algorithm = "LEAST_CONNECTIONS";
@@ -69,6 +71,7 @@ $pool->nodes = $nodes;
 $pool->AddVirtualIp();
 $pool->Create();
 
+echo "Load balancer created with ID $pool->id\n";
 
 
 

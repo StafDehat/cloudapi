@@ -4,8 +4,23 @@ require_once('opencloud/lib/rackspace.php');
 require_once('./auth.php');
 
 $compute = $RAX->Compute();
+$lbs = $RAX->LoadBalancerService("cloudLoadBalancers", "DFW", "publicURL");
+$ostore = $RAX->ObjectStore();
 $dns = $RAX->DNS();
 
+
+$lbid="118973";
+
+print_r($lbs->LoadBalancer($lbid));
+
+
+
+
+
+
+
+
+/**
 $imagelist = $compute->ImageList();
 $imagelist->Sort('name');   // sort by name
 while($image = $imagelist->Next())
@@ -26,5 +41,5 @@ if ($flavor = $compute->Flavor(9)) {
 } else {
   echo "Flavor ID not found \n";
 }
-
+**/
 ?>

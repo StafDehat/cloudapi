@@ -14,7 +14,7 @@ require_once('opencloud/lib/rackspace.php');
 require_once('./auth.php');
 
 $compute = $RAX->Compute();
-$lbs = $RAX->LoadBalancerService();
+$lbs = $RAX->LoadBalancerService("cloudLoadBalancers", "DFW", "publicURL");
 $ostore = $RAX->ObjectStore();
 $dns = $RAX->DNS();
 // $monitor = $RAX->
@@ -102,7 +102,7 @@ $pool->Create();
 
 
 
-// TODO Add a monitor to the LB
+// TODO Add a health monitor to the LB
 // TODO Supply an SSH key to servers
 
 ?>
