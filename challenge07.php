@@ -21,7 +21,7 @@ $nodes = array();
 $servers = array();
 for ($x=0; $x<2; $x++) {
   $server = $compute->Server();
-  $server->name = 'AHoward-Challenge7-' . $x;
+  $server->name = 'AHoward-c07-' . $x;
   $server->flavor = $compute->Flavor(2); //512MB
   $server->image = $compute->Image($cent63id);
   $server->Create();
@@ -63,7 +63,7 @@ for ($x=0; $x<count($servers); $x++) {
 
 // Define the load balancer and create it
 echo "Creating load balancer\n";
-$pool->name = "AHoward-Challenge7";
+$pool->name = "AHoward-c07";
 $pool->port = "80";
 $pool->protocol = "HTTP";
 $pool->algorithm = "LEAST_CONNECTIONS";
@@ -71,8 +71,17 @@ $pool->nodes = $nodes;
 $pool->AddVirtualIp();
 $pool->Create();
 
-echo "Load balancer created with ID $pool->id\n";
+$poolid = $pool->id;
+echo "Creating Load balancer with ID $pool->id\n";
 
+while ($lbs->LoadBalancer($poolid)->status == "BUILDING") {
+  echo "Waiting for load balancer to finish building...\n";
+  sleep(5);
+}
+if (! ($lbs->LoadBalancer($poolid)->status == "ACTIVE")) {
+  echo "Error: Unknown problem encountered during build.\n";
+  exit;
+}
 
 
 ?>

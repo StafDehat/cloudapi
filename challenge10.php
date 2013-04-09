@@ -17,7 +17,6 @@ $compute = $RAX->Compute();
 $lbs = $RAX->LoadBalancerService("cloudLoadBalancers", "DFW", "publicURL");
 $ostore = $RAX->ObjectStore();
 $dns = $RAX->DNS();
-// $monitor = $RAX->
 
 
 function is_valid_ip4($address) {
@@ -84,16 +83,22 @@ $pool->protocol = "HTTP";
 $pool->algorithm = "LEAST_CONNECTIONS";
 $pool->nodes = $nodes;
 $pool->AddVirtualIp();
+$pool->healthMonitor = array(
+  "type"=>"CONNECT",
+  "delay"=>"10",
+  "timeout"=>"5",
+  "attemptsBeforeDeactivation"=>"2");
 $pool->Create();
+$poolid = $pool->id;
 
 
 // Get the load balancer's IP
-$iplist = $lb->virtualIps;
+$iplist = $pool->virtualIps;
 $flag = false;
 for ($x=0; $x<count($iplist); $x++) {
   if (is_valid_ip4($iplist[$x]->address)) {
     echo "Found valid IPv4 address on Load Balancer\n";
-    $lbip = $iplist[$x]->address;
+    $poolip = $iplist[$x]->address;
     $flag = true;
     break;
   }
@@ -102,7 +107,8 @@ if (! $flag) {
   echo "Error: Unable to find valid IPv4 address from Load Balancer\n";
   exit;
 }
-echo "IP: $lbip\n";
+echo "Load Balancer IP: $poolip\n";
+echo "Load Balancer ID: $poolid\n";
 echo "\n";
 
 
@@ -147,7 +153,7 @@ if ( ! $exists ) {
 $record = $zone->Record();
 $record->name = $fqdn;
 $record->type = "A";
-$record->data = $lbip;
+$record->data = $poolip;
 $record->Create();
 $zone->Update();
 echo "Added A record for \"$fqdn\" to zone file for \"$parentDomain.$tld\"\n";
@@ -169,14 +175,26 @@ fwrite($filehandle, $filecontents);
 fclose($filehandle);
 
 
+// Verify $pool is created, wait if necessary
+while ($lbs->LoadBalancer($poolid)->status == "BUILD") {
+  echo "Waiting for load balancer to finish building...\n";
+  sleep(5);
+}
+if (! ($lbs->LoadBalancer($poolid)->status == "ACTIVE")) {
+  echo "Error: Unknown problem encountered during build.\n";
+  exit;
+}
+
+
 // Set the Load Balancer's error page HTML
-$errorPage = $lb->ErrorPage();
+echo "Setting custom error page for Load Balancer.\n";
+$errorPage = $pool->ErrorPage();
 $errorPage->content = $filecontents;
 $errorPage->Create();
 
 
 // Test if container exists in cloud files
-$containerName = "AHoward-Challenge10"
+$containerName = "AHoward-Challenge10";
 $exists = false;
 $containerlist = $ostore->ContainerList();
 while($container = $containerlist->Next()) {
@@ -200,14 +218,6 @@ $file = $container->DataObject();
 $file->Create(array('name'=>$filename), "/tmp/$filename");
 
 
-
-
-
-
-
-
-
-// TODO Add a health monitor to the LB
 // TODO Supply an SSH key to servers
 
 ?>

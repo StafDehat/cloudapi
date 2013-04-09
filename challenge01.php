@@ -1,7 +1,6 @@
 <?php
 //Challenge 1: Write a script that builds three 512 MB Cloud Servers that follow a similar naming convention (ie., web1, web2, web3) and returns the IP and login credentials for each server. Use any image you want. Worth 1 point
 
-
 require_once('opencloud/lib/rackspace.php');
 require_once('./auth.php');
 
@@ -16,7 +15,7 @@ $servers = array();
 // Initiate the creation of all servers - store their initial details in an array
 for ($x=0; $x<3; $x++) {
   $server = $compute->Server();
-  $server->name = 'AHoward-Test' . $x;
+  $server->name = 'AHoward-c01-' . $x;
   $server->flavor = $compute->Flavor(2); //512MB
   $server->image = $compute->Image($cent63id);
   $server->Create();

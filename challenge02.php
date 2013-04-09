@@ -7,7 +7,7 @@ require_once('./auth.php');
 $compute = $RAX->Compute();
 
 
-$imgName = "AHoward-c2";
+$imgName = "AHoward-c02";
 
 // Get a list of servers, grab the smallest
 $serverlist = $compute->ServerList();
@@ -40,11 +40,11 @@ do {
 echo "Image creation complete.\n";
 echo "\n";
 echo "Image details:\n";
-echo "Name: ". $image->name ."\n";
-echo "ID: ". $image->id ."\n";
+echo "Name:     ". $image->name ."\n";
+echo "ID:       ". $image->id ."\n";
 echo "Min Disk: ". $image->minDisk ."\n";
-echo "min RAM: ". $image->minRam ."\n";
-echo "Created: ". $image->created ."\n";
+echo "min RAM:  ". $image->minRam ."\n";
+echo "Created:  ". $image->created ."\n";
 echo "\n";
 
 

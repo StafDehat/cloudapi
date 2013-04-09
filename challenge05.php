@@ -11,7 +11,7 @@ $dbaas = $RAX->DbService('cloudDatabases','DFW','publicURL');
 
 
 $instance = $dbaas->Instance();
-$instance->name = 'AHoward';
+$instance->name = 'AHoward-c05';
 $instance->flavor = $dbaas->Flavor(1);
 $instance->volume->size = 1;
 $instance->Create();

@@ -13,22 +13,34 @@ $ostore = $RAX->ObjectStore();
 $dns = $RAX->DNS();
 //$RAX->LoadBalancerService("HealthMonitor", "DFW", "publicURL");
 
-$lbid="118973";
-$lb = $lbs->LoadBalancer($lbid);
 
-$healthMon = new \OpenCloud\LoadBalancerService\HealthMonitor(
-  $lb,
-  array("type"=>"CONNECT",
-        "delay"=>"10",
-        "timeout"=>"5",
-        "attemptsBeforeDeactivation"=>"2") );
-$lb->healthMonitor = $healthMon;
-print_r($healthMon);
-//$healthMon->Create();
+//var_dump($lbs->LoadBalancerList());
+
+$lbid="120215";
+$pool = $lbs->LoadBalancer($lbid);
 
 
-//curl -i -H "X-Auth-Token: " -H "Content-Type: application/xml" -H "Accept: application/xml" https://dfw.loadbalancers.api.rackspacecloud.com/v1.0/DDI/loadbalancers
-//<healthMonitor type="HTTP" delay="10" timeout="10" attemptsBeforeDeactivation="3" path="/" statusRegex="200"/>
+// Make an error page
+$filename = "sorry.html";
+echo "Creating /tmp/$filename\n";
+$filehandle = fopen("/tmp/$filename", 'w') or die ("Unable to write file\n");
+$filecontents = "<html>
+<head>
+  <title>Challenge 10</title>
+</head>
+<body>
+Error page for challenge 10
+</body>
+</html>";
+fwrite($filehandle, $filecontents);
+fclose($filehandle);
+
+
+// Set the Load Balancer's error page HTML
+$errorPage = $pool->ErrorPage();
+$errorPage->content = $filecontents;
+$errorPage->Create();
+
 
 
 /**
