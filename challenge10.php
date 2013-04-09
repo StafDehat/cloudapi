@@ -37,9 +37,10 @@ $nodes = array();
 $servers = array();
 for ($x=0; $x<2; $x++) {
   $server = $compute->Server();
-  $server->name = 'AHoward-Challenge10-' . $x;
+  $server->name = 'AHoward-c10-' . $x;
   $server->flavor = $compute->Flavor(2); //512MB
   $server->image = $compute->Image($cent63id);
+  $server->AddFile("/root/.ssh/authorized_keys", "ssh-dss AAAAB3NzaC1kc3MAAACBAIV176V+xkqeC9l0zNX/DKPj7MVFNgqlwU7eI2/K/dsy0bQxSC7rpnFz61bJUm0NkU/iBUv0db26wbeYUJujjU9b/aknyM7fPX3KAG5S8NYMAtsGDqnzipb5A3zwai1xm4+UEGfUWHzQad8wa2V9YzDYl0M483uvj9+5oCzOy4BJAAAAFQC9MdKTr6aHuUdF5vxp1vFf6mZoiwAAAIApC153lpx006JViJb37LNsVN1fv1iKxSkfOUi1WjSJ5hvRvPLqD/5K7MDGAWVcVN48NUJzArlYBYcTr8ZqbbuVZDKLS/7tbftecVk/smEWnF1Zp8wdeT5vnSRhFkvIqBBZQWL6iie9omUiLWSa2GBQ6HLYgrNyenoD9A7vDlVLggAAAIBzA7s7oaSlku3iC3CJJtagMcHCexSndO8mUNzREJtTYcvt2TwdfHfJ7J+VqdzN12UxRmsBS/UoIKT0GFhBDlHjzQsZSicOlWQ4+vxMoHH/HfuEpCUqYnvmJ6LKOpcxuunL0pWAE06J8s6KV1AfyDDbcW5gj06Y1YWSzX+UrTew/Q== andr4596@cbast1.dfw1.corp.rackspace.com");
   $server->Create();
   $servers[] = $server;
   echo "Creating server " . $server->name . " with ID ". $server->id ."\n";
@@ -76,8 +77,8 @@ for ($x=0; $x<count($servers); $x++) {
 
 
 // Define the load balancer and create it
-echo "Creating Load Balancer \"AHoward-Challenge10\"\n";
-$pool->name = "AHoward-Challenge10";
+echo "Creating Load Balancer \"AHoward-c10\"\n";
+$pool->name = "AHoward-c10";
 $pool->port = "80";
 $pool->protocol = "HTTP";
 $pool->algorithm = "LEAST_CONNECTIONS";
@@ -115,7 +116,7 @@ echo "\n";
 // Create a zone file with A record pointing to the LB VIP
 // Create DNS entry for FQDN
 // Determine parent domain from input
-$fqdn = "challenge10.cloud.rootmypc.net";
+$fqdn = "c10.cloud.rootmypc.net";
 $fqdnArray = explode('.',$fqdn);
 $numParts = count($fqdnArray);
 $tld = $fqdnArray[$numParts-1];
@@ -184,6 +185,7 @@ if (! ($lbs->LoadBalancer($poolid)->status == "ACTIVE")) {
   echo "Error: Unknown problem encountered during build.\n";
   exit;
 }
+echo "Load Balancer build complete.\n";
 
 
 // Set the Load Balancer's error page HTML
@@ -194,7 +196,7 @@ $errorPage->Create();
 
 
 // Test if container exists in cloud files
-$containerName = "AHoward-Challenge10";
+$containerName = "AHoward-c10";
 $exists = false;
 $containerlist = $ostore->ContainerList();
 while($container = $containerlist->Next()) {
@@ -218,6 +220,6 @@ $file = $container->DataObject();
 $file->Create(array('name'=>$filename), "/tmp/$filename");
 
 
-// TODO Supply an SSH key to servers
+// TODO Take SSH key as argument
 
 ?>
