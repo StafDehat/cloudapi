@@ -32,12 +32,20 @@ for ($x=0; $x<count($servers); $x++) {
   $id = $server->id;
   $rootpass = $server->adminPass;
 
-  do {
+  // Wait for servers to finsih building
+  while ( $server->status == 'BUILD' ) {
     echo "Server not yet active.  Sleeping 30s...\n";
     sleep(30);
     $server = $compute->Server($id);
-  } while ( ! ($server->status == 'ACTIVE') );
+  }
 
+  // Verify build completed successfully
+  if (!($server->status == 'ACTIVE')) {
+    echo "Unknown error encountered while building server $server->name\n";
+    exit;
+  }
+
+  // Report server details
   echo "\n";
   echo $server->name . " details:\n";
   echo "Server ID: ". $id ."\n";

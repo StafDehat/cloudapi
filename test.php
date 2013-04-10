@@ -3,36 +3,13 @@
 require_once('opencloud/lib/rackspace.php');
 require_once('./auth.php');
 
+$compute=$RAX->Compute();
 
-function usage($self) {
-  exit;
-}
+$imgName = "AHoward-c02";
+$imgList = $compute->ImageList(TRUE, array('name'=>$imgName));
+$image = $imgList->Next();
+echo "Status: $image->status\n";
 
-
-$authkeys = "";
-$homedir = $_SERVER['HOME'];
-
-if (count($argv) == 2 ) {
-$localkey = $argv[1];
-  // Verify provided directory exists
-  if ( file_exists($localkey) &&
-       is_readable($localkey) ) {
-    echo "Found public SSH key at \"$localkey\" - Gonna upload it.\n";
-    $authkeys = $authkeys ."\n". file_get_contents($localkey);
-  }
-}
-if ( file_exists( "$homedir/.ssh/id_rsa.pub" ) &&
-     is_readable( "$homedir/.ssh/id_rsa.pub" ) ) {
-  echo "Found public SSH key at \"$homedir/.ssh/id_rsa.pub\" - Gonna upload it.\n";
-  $authkeys = $authkeys ."\n". file_get_contents("$homedir/.ssh/id_rsa.pub");
-}
-if ( file_exists( "$homedir/.ssh/id_dsa.pub" ) &&
-     is_readable( "$homedir/.ssh/id_dsa.pub" )) {
-  echo "Found public SSH key at \"$homedir/.ssh/id_dsa.pub\" - Gonna upload it.\n";
-  $authkeys = $authkeys ."\n". file_get_contents("$homedir/.ssh/id_dsa.pub");
-}
-
-echo "Auth Keys:\n$authkeys\n";
 
 /**
 $filename = "sorry.html";

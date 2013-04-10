@@ -11,6 +11,10 @@ $imgName = "AHoward-c02";
 
 // Get a list of servers, grab the smallest
 $serverlist = $compute->ServerList();
+if ( count($serverlist) < 1 ) {
+  echo "Error: Tried to find smallest server on account, but found no servers at all.\n";
+  exit;
+}
 $sourceServer = $serverlist->Next();
 while($x = $serverlist->Next()) {
   if ( $x->flavor->id < $sourceServer->flavor->id )
@@ -21,6 +25,7 @@ echo "Name:   ". $sourceServer->name ."\n";
 echo "Flavor: ". $sourceServer->flavor->id ."\n";
 echo "ID:     ". $sourceServer->id ."\n";
 echo "\n";
+
 
 // Take an image of that server
 echo "Taking an image of source server.\n";
@@ -36,7 +41,13 @@ do {
     echo "Waiting for image creation to complete...\n";
     sleep(30);
   }
-} while (!($image->status == 'ACTIVE'));
+} while ($image->status == 'SAVING');
+
+if (!($image->status == 'ACTIVE')) {
+  echo "Unknown error encountered while saving image.\n";
+  exit;
+}
+
 echo "Image creation complete.\n";
 echo "\n";
 echo "Image details:\n";
@@ -56,14 +67,20 @@ $newServer->image = $compute->Image($image->id);
 $newServer->Create();
 
 
-// Optionally, wait for the server to finish building
+// Wait for the server to finish building
 $id = $newServer->id;
 $rootpass = $newServer->adminPass;
-do {
+while ($newServer->status == 'BUILD') {
   echo "New server not yet active.  Sleeping 30s...\n";
   sleep(30);
   $newServer = $compute->Server($id);
-} while ( ! ($newServer->status == 'ACTIVE') );
+}
+
+if (!($newServer->status == 'ACTIVE')) {
+  echo "Unknown error encountered while building server.\n";
+  exit;
+}
+
 echo "Server build complete\n";
 echo "\n";
 echo $newServer->name . " details:\n";
