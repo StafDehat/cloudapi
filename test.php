@@ -5,11 +5,8 @@ require_once('./auth.php');
 
 $compute=$RAX->Compute();
 
-$imgName = "AHoward-c02";
-$imgList = $compute->ImageList(TRUE, array('name'=>$imgName));
-$image = $imgList->Next();
-echo "Status: $image->status\n";
-
+$server = $compute->Server("b7a95fd0-105c-4c85-bcab-3975603ed3cb");
+echo $server->status . "\n";
 
 /**
 $filename = "sorry.html";

@@ -45,6 +45,7 @@ do {
 
 if (!($image->status == 'ACTIVE')) {
   echo "Unknown error encountered while saving image.\n";
+  echo "Image status: $image->status\n";
   exit;
 }
 
@@ -70,14 +71,15 @@ $newServer->Create();
 // Wait for the server to finish building
 $id = $newServer->id;
 $rootpass = $newServer->adminPass;
-while ($newServer->status == 'BUILD') {
+do {
   echo "New server not yet active.  Sleeping 30s...\n";
   sleep(30);
   $newServer = $compute->Server($id);
-}
+} while ($newServer->status == 'BUILD');
 
 if (!($newServer->status == 'ACTIVE')) {
   echo "Unknown error encountered while building server.\n";
+  echo "Server status: $newServer->status\n";
   exit;
 }
 
