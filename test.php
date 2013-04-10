@@ -1,26 +1,40 @@
 <?php
 
-function is_valid_ip4($address) {
-  return (preg_match("/^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/", $address));
-}
-
 require_once('opencloud/lib/rackspace.php');
 require_once('./auth.php');
 
-$compute = $RAX->Compute();
-$lbs = $RAX->LoadBalancerService("cloudLoadBalancers", "DFW", "publicURL");
-$ostore = $RAX->ObjectStore();
-$dns = $RAX->DNS();
-//$RAX->LoadBalancerService("HealthMonitor", "DFW", "publicURL");
+
+function usage($self) {
+  exit;
+}
 
 
-//var_dump($lbs->LoadBalancerList());
+$authkeys = "";
+$homedir = $_SERVER['HOME'];
 
-$lbid="120215";
-$pool = $lbs->LoadBalancer($lbid);
+if (count($argv) == 2 ) {
+$localkey = $argv[1];
+  // Verify provided directory exists
+  if ( file_exists($localkey) &&
+       is_readable($localkey) ) {
+    echo "Found public SSH key at \"$localkey\" - Gonna upload it.\n";
+    $authkeys = $authkeys ."\n". file_get_contents($localkey);
+  }
+}
+if ( file_exists( "$homedir/.ssh/id_rsa.pub" ) &&
+     is_readable( "$homedir/.ssh/id_rsa.pub" ) ) {
+  echo "Found public SSH key at \"$homedir/.ssh/id_rsa.pub\" - Gonna upload it.\n";
+  $authkeys = $authkeys ."\n". file_get_contents("$homedir/.ssh/id_rsa.pub");
+}
+if ( file_exists( "$homedir/.ssh/id_dsa.pub" ) &&
+     is_readable( "$homedir/.ssh/id_dsa.pub" )) {
+  echo "Found public SSH key at \"$homedir/.ssh/id_dsa.pub\" - Gonna upload it.\n";
+  $authkeys = $authkeys ."\n". file_get_contents("$homedir/.ssh/id_dsa.pub");
+}
 
+echo "Auth Keys:\n$authkeys\n";
 
-// Make an error page
+/**
 $filename = "sorry.html";
 echo "Creating /tmp/$filename\n";
 $filehandle = fopen("/tmp/$filename", 'w') or die ("Unable to write file\n");
@@ -35,11 +49,6 @@ Error page for challenge 10
 fwrite($filehandle, $filecontents);
 fclose($filehandle);
 
-
-// Set the Load Balancer's error page HTML
-$errorPage = $pool->ErrorPage();
-$errorPage->content = $filecontents;
-$errorPage->Create();
 
 
 

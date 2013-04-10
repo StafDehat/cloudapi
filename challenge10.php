@@ -1,4 +1,3 @@
-#!/usr/bin/php
 <?php
 /** Challenge 10: Write an application that will:
 - Create 2 servers, supplying a ssh key to be installed at /root/.ssh/authorized_keys.
@@ -13,6 +12,9 @@ Whew! That one is worth 8 points!
 require_once('opencloud/lib/rackspace.php');
 require_once('./auth.php');
 
+// Some hard-coded crap
+$cent63id = 'c195ef3b-9195-4474-b6f7-16e5bd86acd0';
+
 $compute = $RAX->Compute();
 $lbs = $RAX->LoadBalancerService("cloudLoadBalancers", "DFW", "publicURL");
 $ostore = $RAX->ObjectStore();
@@ -23,9 +25,41 @@ function is_valid_ip4($address) {
   return (preg_match("/^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/", $address));
 }
 
+function usage($self) {
+  echo "Usage: php $self [SSH public key file]\n";
+  exit;
+}
 
-// Some hard-coded crap
-$cent63id = 'c195ef3b-9195-4474-b6f7-16e5bd86acd0';
+
+if (count($argv) > 2) {
+  echo "Error: Too many arguments\n";
+  usage($argv[0]);
+}
+
+
+// Grab SSH public keys from workstation:
+$authkeys = "";
+$homedir = $_SERVER['HOME'];
+
+if (count($argv) == 2 ) {
+$localkey = $argv[1];
+  // Verify provided directory exists
+  if ( file_exists($localkey) &&
+       is_readable($localkey) ) {
+    echo "Found public SSH key at \"$localkey\" - Gonna upload it.\n";
+    $authkeys = $authkeys ."\n". file_get_contents($localkey);
+  }
+}
+if ( file_exists( "$homedir/.ssh/id_rsa.pub" ) &&
+     is_readable( "$homedir/.ssh/id_rsa.pub" ) ) {
+  echo "Found public SSH key at \"$homedir/.ssh/id_rsa.pub\" - Gonna upload it.\n";
+  $authkeys = $authkeys ."\n". file_get_contents("$homedir/.ssh/id_rsa.pub");
+}
+if ( file_exists( "$homedir/.ssh/id_dsa.pub" ) &&
+     is_readable( "$homedir/.ssh/id_dsa.pub" )) {
+  echo "Found public SSH key at \"$homedir/.ssh/id_dsa.pub\" - Gonna upload it.\n";
+  $authkeys = $authkeys ."\n". file_get_contents("$homedir/.ssh/id_dsa.pub");
+}
 
 
 // Initialize some LB stuff
@@ -40,7 +74,7 @@ for ($x=0; $x<2; $x++) {
   $server->name = 'AHoward-c10-' . $x;
   $server->flavor = $compute->Flavor(2); //512MB
   $server->image = $compute->Image($cent63id);
-  $server->AddFile("/root/.ssh/authorized_keys", "ssh-dss AAAAB3NzaC1kc3MAAACBAIV176V+xkqeC9l0zNX/DKPj7MVFNgqlwU7eI2/K/dsy0bQxSC7rpnFz61bJUm0NkU/iBUv0db26wbeYUJujjU9b/aknyM7fPX3KAG5S8NYMAtsGDqnzipb5A3zwai1xm4+UEGfUWHzQad8wa2V9YzDYl0M483uvj9+5oCzOy4BJAAAAFQC9MdKTr6aHuUdF5vxp1vFf6mZoiwAAAIApC153lpx006JViJb37LNsVN1fv1iKxSkfOUi1WjSJ5hvRvPLqD/5K7MDGAWVcVN48NUJzArlYBYcTr8ZqbbuVZDKLS/7tbftecVk/smEWnF1Zp8wdeT5vnSRhFkvIqBBZQWL6iie9omUiLWSa2GBQ6HLYgrNyenoD9A7vDlVLggAAAIBzA7s7oaSlku3iC3CJJtagMcHCexSndO8mUNzREJtTYcvt2TwdfHfJ7J+VqdzN12UxRmsBS/UoIKT0GFhBDlHjzQsZSicOlWQ4+vxMoHH/HfuEpCUqYnvmJ6LKOpcxuunL0pWAE06J8s6KV1AfyDDbcW5gj06Y1YWSzX+UrTew/Q== andr4596@cbast1.dfw1.corp.rackspace.com");
+  $server->AddFile("/root/.ssh/authorized_keys", $authkeys);
   $server->Create();
   $servers[] = $server;
   echo "Creating server " . $server->name . " with ID ". $server->id ."\n";
@@ -219,7 +253,5 @@ echo "Uploading new $filename file to Cloud Files\n";
 $file = $container->DataObject();
 $file->Create(array('name'=>$filename), "/tmp/$filename");
 
-
-// TODO Take SSH key as argument
 
 ?>
