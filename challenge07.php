@@ -83,7 +83,7 @@ $pool->Create();
 $poolid = $pool->id;
 echo "Creating Load balancer with ID $pool->id\n";
 
-while ($lbs->LoadBalancer($poolid)->status == "BUILDING") {
+while ($lbs->LoadBalancer($poolid)->status == "BUILD") {
   echo "Waiting for load balancer to finish building...\n";
   sleep(5);
 }
@@ -91,6 +91,7 @@ if (! ($lbs->LoadBalancer($poolid)->status == "ACTIVE")) {
   echo "Error: Unknown problem encountered during build.\n";
   exit;
 }
+echo "Load balancer build complete.\n";
 
 
 ?>
