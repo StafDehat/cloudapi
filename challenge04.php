@@ -69,10 +69,15 @@ if ( ! $exists ) {
   $zone->name = "$parentDomain.$tld";
   $zone->emailAddress = "admin@$parentDomain.$tld";
   $zone->Create();
-  sleep(5); // TODO Actually verify domain created succesfully
+  sleep(5);
   echo "Parent domain created.\n";
-  $zone = $dns->DomainList(array("name" => "$parentDomain.$tld"))->Next();
+  $zone = $dns->DomainList(array("name" => "$parentDomain.$tld"));
 }
+if (count($zone) < 1) {
+  echo "Unknown error occurred while attempting to create domain.\n";
+  exit;
+}
+$zone = $zone->Next();
 
 // Add our new record to the domain's zone file
 $record = $zone->Record();

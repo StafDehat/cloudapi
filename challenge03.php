@@ -41,7 +41,6 @@ if (! ctype_alnum($containerName)) {
 $exists = false;
 $containerlist = $ostore->ContainerList();
 while($container = $containerlist->Next()) {
-  printf("Container %s has %u bytes\n", $container->name, $container->bytes);
   if ($container->name == $containerName) {
     echo "Found a container named \"$containerName\".\n";
     $exists = true;
