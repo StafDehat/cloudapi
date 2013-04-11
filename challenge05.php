@@ -6,7 +6,6 @@ require_once('opencloud/lib/rackspace.php');
 require_once('./auth.php');
 
 
-//$dbaas = $RAX->DbService(NULL, 'DFW');
 $dbaas = $RAX->DbService('cloudDatabases','DFW','publicURL');
 
 
@@ -19,10 +18,15 @@ $instance->Create();
 
 // Wait loop for creation
 $id = $instance->id;
-while ( ! ($instance->status == "ACTIVE") ) {
+do {
   echo "Instance still building.  Sleeping 30 seconds...\n";
   sleep(30);
   $instance = $dbaas->Instance($id);
+} while ( $instance->status == "BUILD" );
+if (! ($instance->status == "ACTIVE")) {
+  echo "Unknown error occurred while building instance.\n";
+  echo "Instance status: $instance->status\n";
+  exit;
 }
 echo "Instance built with ID $instance->id.\n";
 
