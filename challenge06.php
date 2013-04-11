@@ -4,7 +4,6 @@
 require_once('opencloud/lib/rackspace.php');
 require_once('./auth.php');
 
-//$compute = $RAX->Compute();
 $ostore = $RAX->ObjectStore();
 
 function usage($self) {
@@ -28,17 +27,30 @@ if (! ctype_alnum($containerName)) {
 
 // Test if container exists in cloud files
 $exists = false;
-$containerlist = $ostore->ContainerList();
-while($container = $containerlist->Next()) {
+$containerList = $ostore->ContainerList();
+while($container = $containerList->Next()) {
   if ($container->name == $containerName) {
     echo "Error: Container \"$containerName\" already exists.\n";
     usage($argv[0]);
   }
 }
 
+// Create container
+echo "Creating container \"$containerName\"\n";
 $container = $ostore->Container();
 $container->name = $containerName;
 $container->Create();
+
+// Verify container got created.
+$containerList = $ostore->ContainerList(array("name"=>$containerName));
+if (count($containerList) < 1) {
+  echo "Unknown error occurred while creating container.\n";
+  exit;
+}
+echo "Container created successfully.\n";
+
+// Enable CDN
+echo "Enabling CDN on container.\n";
 $container->EnableCDN();
 
 ?>
